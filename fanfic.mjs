@@ -17,6 +17,7 @@
 //   node fanfic.mjs set aliases "ORV,Всеведущий читатель" --fandom "<fandom>"             other names for scan "<name>"
 //   node fanfic.mjs set ao3_tag|at_tag "<exact tag>" --fandom "<fandom>"                 where the fandom lives on each site
 //   node fanfic.mjs set wattpad_tags "orv,kimdokja" --fandom "<fandom>"                   Wattpad tags of the fandom ("" clears)
+//   node fanfic.mjs set web_skip "quotev.com,dreamwidth.org" [--fandom "<fandom>"]       sites not to web-search any more ("" clears)
 //   node fanfic.mjs set ao3_user <login>                                                  the reader's AO3 account: fics with their kudos count as read
 //   node fanfic.mjs fandom add|remove "<fandom>"
 //   node fanfic.mjs author add|remove "<AO3 user>"                 authors the reader follows: their works join every scan
@@ -99,7 +100,7 @@ const CROSSOVERS = ['include', 'exclude', 'only'];
 const RATINGS = ['General Audiences', 'Teen And Up Audiences', 'Mature', 'Explicit', 'Not Rated'];
 // Author.Today shows characters, not words: about 6.5 characters with spaces per Russian word.
 const CHARS_PER_WORD = 6.5;
-const USAGE = 'usage: node fanfic.mjs settings | set mode|ao3_user|originals|categories|relationships|with_gen|aliases|pages|min_words|max_words|ratings|status|crossovers|ao3_tag|at_tag|wattpad_tags <value> [--fandom <f>] | fandom add|remove <f> | author add|remove <AO3 user> | author block|unblock <name>\n'
+const USAGE = 'usage: node fanfic.mjs settings | set mode|ao3_user|originals|categories|relationships|with_gen|aliases|pages|min_words|max_words|ratings|status|crossovers|ao3_tag|at_tag|wattpad_tags|web_skip <value> [--fandom <f>] | fandom add|remove <f> | author add|remove <AO3 user> | author block|unblock <name>\n'
   + '     | tags exclude|require|prefer|demote|allow|remove "<tag>" [--fandom <f>] [--unless "<tag>,<tag>"]\n'
   + '     | scan ["<fandom or tag>" | --author <AO3 user>] [--originals] [--require a,b] [--exclude x,y] [--text "<words>"] [--ao3 <tag>] [--at <tag>] [--mode ru|ru+en]\n'
   + '            [--pages N] [--min-words N] [--max-words N] [--ratings a,b] [--status full|in_progress|any] [--crossovers include|exclude|only] [--full] [--site ao3|author.today|wattpad]\n'
@@ -119,6 +120,9 @@ const flag = (name) => {
   const at = argv.indexOf(name);
   return at >= 0 ? (argv.splice(at, 1), true) : false;
 };
+// Sites the agent searches on the web after a scan (modes/fanfic.md, step 5), by the reader's languages.
+const WEB_SITES = { ru: ['ficbook.net', 'feisovet.ru'], en: ['fanfiction.net', 'quotev.com', 'dreamwidth.org'] };
+const webSites = (langs) => langs.flatMap((l) => WEB_SITES[l] ?? []);
 const list = (s) => (s ? s.split(',').map((t) => t.trim()).filter(Boolean) : []);
 
 const SETTINGS_FILE = path.join(reader.dir, 'fanfic-settings.json');
@@ -312,6 +316,15 @@ async function setCmd() {
       target.wattpad_tags = list(value).map((t) => t.toLowerCase().replace(/[\s#]+/g, ''));
       if (!target.wattpad_tags.length) delete target.wattpad_tags;
       break;
+    case 'web_skip': {
+      const sites = list(value).map((x) => x.toLowerCase().replace(/^https?:\/\/(www\.)?|\/.*$/g, ''));
+      const known = Object.values(WEB_SITES).flat();
+      const bad = sites.filter((x) => !known.includes(x));
+      if (bad.length) fail(`unknown sites ${bad.join(', ')} — ${known.join(', ')}`);
+      target.web_skip = sites;
+      if (!sites.length) delete target.web_skip;
+      break;
+    }
     case 'pages':
     case 'min_words':
     case 'max_words':
@@ -774,8 +787,12 @@ async function scan() {
     ...(missingRequired(settings).length ? { missing_required: missingRequired(settings) } : {}),
     searches,
     run: { started, finished: new Date().toISOString(), via: bridge ? 'browser' : 'script', http: httpStats },
-    // Not read by scripts: offer these to the reader, then search them on the web (modes/fanfic.md).
-    web_search_next: ['ficbook.net', ...(langs.includes('en') ? ['fanfiction.net', 'quotev.com', 'dreamwidth.org'] : [])],
+    // Not read by scripts: offer these to the reader, then search them on the web (modes/fanfic.md, step 5) —
+    // per search, without the sites the reader dropped (web_skip, general and the fandom's own).
+    web_search_next: searches.filter((s) => !s.query?.startsWith('author: ')).map((s) => {
+      const skip = new Set([...(settings?.web_skip ?? []), ...(s.query ? ownFandoms(settings, [s.query]).flatMap(([, f]) => f.web_skip ?? []) : [])]);
+      return { query: s.query, sites: webSites(langs).filter((x) => !skip.has(x)) };
+    }),
   });
 }
 

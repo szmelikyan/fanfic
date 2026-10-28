@@ -209,6 +209,15 @@ test('settings: first use asks, then each answer is stored for this reader only'
   assert.equal(run('settings').onboarded, false, 'the default reader is untouched');
 });
 
+test('web_skip: sites dropped from web search, general or for a fandom', () => {
+  run('set', 'web_skip', 'https://www.Quotev.com/', '--reader', 'Веб');
+  const s = run('set', 'web_skip', 'fanfiction.net,dreamwidth.org', '--fandom', 'ORV', '--reader', 'Веб');
+  assert.deepEqual(s.web_skip, ['quotev.com']);
+  assert.deepEqual(s.by_fandom.ORV.web_skip, ['fanfiction.net', 'dreamwidth.org']);
+  assert.equal(run('set', 'web_skip', '', '--reader', 'Веб').web_skip, undefined);
+  assert.throws(() => execFileSync('node', [path.join(ROOT, 'fanfic.mjs'), 'set', 'web_skip', 'litnet.com', '--reader', 'Веб'], { env: { ...process.env, FANFIC_DATA: dir }, stdio: 'pipe' }));
+});
+
 test('fandom settings match AO3 tags with diacritics; uncategorised fics are not dropped by category', () => {
   const t = effectiveTags({ by_fandom: { 'Tian Guan Ci Fu': { prefer: ['Hurt/Comfort'] } } }, ['天官赐福 - 墨香铜臭 | Tiān Guān Cì Fú - Mòxiāng Tóngxiù']);
   assert.deepEqual(t.prefer, ['Hurt/Comfort']);
