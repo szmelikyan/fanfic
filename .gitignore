@@ -1,0 +1,6 @@
+node_modules/
+config/config.json
+data/cache/
+data/readers/
+data/reader/
+data/*.tmp
