@@ -12,7 +12,7 @@ import { ROOT, DATA, loadConfig, out, fail } from './lib/paths.mjs';
 
 const config = await loadConfig();
 const { repo: repoPath, dir } = config.backup ?? {};
-if (!repoPath || !dir) fail('no "backup" in config/config.json — e.g. { "repo": "~/fanfic-data", "dir": "sveta" }');
+if (!repoPath || !dir) fail('no "backup" in config/config.json — e.g. { "repo": "~/fanfic-data", "dir": "<reader>" }');
 const repo = path.resolve(repoPath.replace(/^~(?=\/|$)/, homedir()));
 if (!existsSync(path.join(repo, '.git'))) fail(`${repo} is not a git repository`);
 

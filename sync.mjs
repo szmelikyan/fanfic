@@ -14,7 +14,7 @@ const git = (...args) => execFileSync('git', args, { cwd: ROOT, encoding: 'utf8'
 
 const config = await loadConfig();
 const copies = [config.sync_with ?? []].flat().map((p) => path.resolve(p.replace(/^~(?=\/|$)/, homedir())));
-if (!copies.length) fail('no "sync_with" in config/config.json — list the other copies, e.g. ["~/fanfic-marat"]');
+if (!copies.length) fail('no "sync_with" in config/config.json — list the other copies, e.g. ["~/fanfic-<name>"]');
 if (git('status', '--porcelain')) fail('uncommitted changes — commit them first, then sync');
 
 const result = [];
