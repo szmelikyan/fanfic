@@ -1,71 +1,79 @@
-# Фанфики — подбор под ваш вкус
+# Fanfic — recommendations for your taste
 
-Помощник, который ищет фанфики под ваш вкус. Вы разговариваете с ним по-русски, как в чате, а он:
+**English** · [Русский](README.ru.md)
 
-- ищет новые фики по вашим фандомам, пейрингам и любимым авторам: сам — на AO3, Author.Today и Wattpad; через поисковик, если вы согласны, — на фикбуке, FanFiction.net, Quotev, Dreamwidth и «Призрачных мирах»;
-- убирает то, что вам не подходит: нелюбимые теги, заброшенные фики, уже прочитанное;
-- по вашему желанию читает описания, отзывы и куски текста и отсеивает то, что противоречит вашим правилам;
-- собирает подборку на отдельную страницу — её можно открыть в браузере и сохранить.
+An assistant that finds fanfiction to match your taste. You chat with it in Russian, and it:
 
-Он запоминает ваш вкус: что вы прочитали, что не понравилось и почему. Отвергнутое больше не предлагает.
+- searches for new stories by fandom, pairing, and favorite author: directly on AO3, Author.Today, and Wattpad; with your permission, through web search on Ficbook, FanFiction.net, Quotev, Dreamwidth, and Feisovet;
+- filters out unwanted tags, abandoned stories, and works you have already read;
+- optionally reads descriptions, reviews, and excerpts to check stories against your preferences;
+- builds a recommendation page you can open in a browser and save.
 
-## Что нужно
+It remembers what you have read, what you disliked, and why. Rejected stories are excluded from later recommendations.
 
-1. Компьютер (проверено на Mac).
-2. ИИ-помощник, в котором идёт разговор: подойдёт любая модель, которая умеет работать с файлами и запускать команды на компьютере. Инструкции написаны для [Claude Code](https://claude.com/claude-code); Codex и другие помощники читают их из `AGENTS.md`.
-3. [Node.js](https://nodejs.org) — на нём работают поисковые скрипты. Достаточно установить, разбираться в нём не нужно.
-4. Для AO3 удобно, если помощник умеет работать в вашем браузере (например, Chrome с расширением Claude in Chrome): иногда AO3 не пускает программу, и тогда она читает страницы через вашу вкладку.
+## Requirements
 
-## Как начать
+1. A computer; the workflow has been checked on macOS.
+2. An AI assistant that can read and write local files and run commands. Compatibility with every model has not been tested. Instructions are available for [Claude Code](https://claude.com/claude-code); Codex and other assistants can read [AGENTS.md](AGENTS.md).
+3. [Node.js](https://nodejs.org), which runs the search scripts. Development checks use its built-in `node --test` runner. No additional npm packages are required.
+4. Browser access is useful for AO3. If a scripted request is blocked, the assistant can use your AO3 browser tab through a compatible browser tool or ask you to run the supplied snippet yourself.
 
-Откройте Терминал и выполните по очереди:
+## Getting started
 
-```
+Run these commands in a terminal:
+
+```sh
 git clone https://github.com/szmelikyan/fanfic.git ~/fanfic
 cd ~/fanfic
 cp config/config.example.json config/config.json
-claude      # или команда вашего ИИ-помощника
+claude      # or the command for your AI assistant
 ```
 
-В файле `config/config.json` впишите своё имя в `reader_name`. Дальше просто пишите в чат. При первом запуске помощник задаст несколько вопросов: язык, фандомы, любимые и нелюбимые теги, нужны ли законченные фики. Ответы он запомнит сам.
+Set `reader_name` to your name in `config/config.json`. Then talk to the assistant. At first launch it asks about language, fandoms, preferred and excluded tags, and whether stories must be complete, and saves your answers.
 
-## Что можно сказать
+The reader conversation is currently configured for Russian. The English README documents the same workflow; it does not change that conversation setting.
 
-- `fanfic scan` — найти новое по всем вашим фандомам;
-- `fanfic scan Магистр дьявольского культа` — только по одному фандому;
-- `fanfic settings` — посмотреть и поменять настройки;
-- «вот мои закладки на AO3, логин …» — он изучит, что вы уже любите;
-- «читала», «не моё, слишком много ангста» — фик больше не попадётся, а причину он учтёт;
-- «поищи ещё на фикбуке» — поиск через поисковик, с вашего согласия.
+## Things you can say
 
-## Где ваши данные
+- `fanfic scan` — find new stories across all your fandoms;
+- `fanfic scan <fandom>` — search one fandom;
+- `fanfic settings` — view or change your preferences;
+- “Here are my AO3 bookmarks; my username is …” — let the assistant learn from your existing favorites;
+- “Already read it” or “Not for me, too much angst” — exclude the story and record the reason;
+- “Search Ficbook too” — allow a web search on that platform.
 
-Всё о вашем вкусе — настройки, заметки, прочитанное, найденное — лежит у вас на компьютере в папке `data/reader/`. В интернет и в этот репозиторий оно не попадает.
+## Your data
 
-В конце каждого разговора помощник может сохранять копию этих данных в ваш личный (закрытый) репозиторий на GitHub — на случай, если с компьютером что-то случится. Это настраивается в `config/config.json` (`backup`).
+Preferences, notes, reading history, and discovered works are stored locally in `data/reader/`. These files are excluded from the program repository. If backups are configured, they are uploaded separately to your personal repository.
 
-Если программой пользуются несколько человек, у каждого своя копия папки (например, `~/fanfic` и `~/fanfic-<имя>`). Так вкусы не смешиваются.
+At the end of a session, the assistant can back up your reader data to a private GitHub repository. Configure this under `backup` in `config/config.json`.
 
-## Чего помощник не делает
+For multiple readers, use a separate folder for each person, such as `~/fanfic` and `~/fanfic-<name>`, so their preferences stay separate.
 
-Он соблюдает правила сайтов: не обходит защиту, не открывает закрытые разделы, не скачивает чужие тексты для распространения и не выдумывает фики. На фикбук, FanFiction.net, Quotev, Dreamwidth и «Призрачные миры» он не заходит сам: ищет через поисковик, открывает только страницы найденных фиков и только с вашего согласия.
+## Website rules
 
----
+The assistant follows the platform rules in [modes/fanfic.md](modes/fanfic.md). It does not bypass access controls, open restricted sections, download other people's stories for redistribution, or invent recommendations. On Ficbook, FanFiction.net, Quotev, Dreamwidth, and Feisovet, it uses web search and individual result pages only after you agree. Access and available metadata depend on the platform.
 
-<details>
-<summary>Для тех, кто разбирается</summary>
+## For developers and other assistants
 
-Агент читает `AGENTS.md` (начало сессии, жёсткие правила, замена инструментов для разных помощников; `CLAUDE.md` подключает его для Claude Code) и скилл `.claude/skills/fanfic/` со сценарием `modes/fanfic.md`. Детерминированную работу делают Node-скрипты без зависимостей:
+Read `AGENTS.md` for session steps, reader data rules, and equivalents for different assistants. `CLAUDE.md` loads those instructions for Claude Code. The skill in `.claude/skills/fanfic/` points to the workflow in `modes/fanfic.md`. Assistants without automatic skill discovery can read the Markdown files directly and run the same commands.
 
-| Файл | Назначение |
-|---|---|
-| `fanfic.mjs` | настройки, скан AO3, Author.Today и Wattpad, отзывы, сохранёнки, `check`, `similar`, страница подборки |
-| `lib/fanfic.mjs` | разбор страниц площадок и фильтры по тегам |
-| `lib/http.mjs`, `lib/bridge.mjs` | запросы с паузами и кэшем; мост к вкладке AO3 в браузере читателя |
-| `reader.mjs` | отвергнутые и прочитанные фики читателя |
-| `scripts/fanfic-scan.sh` | полный скан по частям (для фона и расписания) |
-| `sync.mjs` | синхронизация копий читателей через git (`sync_with` в `config/config.json`) |
-| `backup.mjs` | копия данных читателя в личный репозиторий (`backup` в `config/config.json`), в конце каждой сессии |
+The command-line tools use Node.js without additional dependencies:
 
-Тесты: `npm test`.
-</details>
+| File | Purpose |
+| --- | --- |
+| `fanfic.mjs` | Settings, scans of AO3/Author.Today/Wattpad, reviews, bookmarks, `check`, `similar`, and recommendation pages |
+| `lib/fanfic.mjs` | Platform page parsing and tag filters |
+| `lib/http.mjs`, `lib/bridge.mjs` | Requests with delays and caching; connection to the reader's AO3 browser tab |
+| `reader.mjs` | Reader's rejected and completed stories |
+| `scripts/fanfic-scan.sh` | Full scan in batches, for background or scheduled runs |
+| `sync.mjs` | Git synchronization between readers' program copies, configured by `sync_with` |
+| `backup.mjs` | Session-end reader data backup to a personal repository, configured by `backup` |
+
+Run the existing tests from the repository root:
+
+```sh
+npm test
+```
+
+Core instructions are Markdown and configuration uses JSON. Browser access, web search, and optional Claude-specific UI features require equivalent tools in other environments; `AGENTS.md` describes the alternatives. This does not establish compatibility with every assistant.
